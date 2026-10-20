@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Contact.css'
 
 const initialForm = {
@@ -12,19 +12,30 @@ const initialForm = {
 }
 
 export default function Contact() {
-    const [form, setForm] = useState(initialForm);
     const [status, setStatus] = useState({ type: '', message: '' });
+    const [loadingCep, setLoadingCep] = useState(false);
+    const [form, setForm] = useState(initialForm);
+    const [states, setStates] = useState([]);
 
     async function searchCep() {
         const cleanCep = form.cep.replace(/\D/g, '');
+
         if (cleanCep.length !== 8) {
-            setStatus({ type: 'error', message: 'Digite um CEP válido!' })
+            setStatus({ type: 'error', message: 'Digite um CEP válido!' });
+            return;
         }
+
+        setLoadingCep(true);
+
         try {
+            // await new Promise((resolve) => setTimeout(resolve, 5000));
+
             const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-            if  (!response.ok) throw new Error('Falha na busca do CEP!');
+            if (!response.ok) throw new Error('Falha na busca do CEP!');
+
             const address = await response.json();
             if (address.erro) throw new Error('CEP não encontrado');
+
             setForm((current) => ({
                 ...current,
                 cep: cleanCep,
@@ -33,10 +44,28 @@ export default function Contact() {
                 state: address.uf || '',
                 city: address.localidade || ''
             }));
+
             setStatus({ type: 'success', message: 'Endereço encontrado!' });
         } catch (erro) {
             setStatus({ type: 'error', message: erro.message });
+        } finally {
+            setLoadingCep(false);
         }
+    }
+    
+    useEffect(() => {
+        fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+        .then((response) => {
+            if (!response.ok) throw new Error();
+            return response.json();
+        })
+        .then(setStates)
+        .catch(() => setStatus({ type: 'error', message: 'Não foi possível carregar os estados' }))
+    }, []);
+
+    function handleChange(event) {
+        const { name, value } = event.target;
+        setForm((current) => ({...current, [name]: value}));
     }
 
     return (
@@ -53,10 +82,15 @@ export default function Contact() {
                                 <input 
                                     name="cep"
                                     value={form.cep}
+                                    onChange={handleChange}
+                                    //     onChange={(event) => (setForm((current) => ({
+                                    //         current, cep: event.target.value})
+                                    // ))}
                                     inputMode="numeric" 
                                     placeholder="00000-000" 
                                 />
-                                <button type="button" onClick={searchCep}>
+                                <button type="button" onClick={searchCep} disabled={loadingCep}>
+                                    {loadingCep ? 'Buscando...' : 'Buscar CEP'}
                                 </button>
                             </div>
                         </label>
@@ -76,6 +110,8 @@ export default function Contact() {
                             <input 
                                 name="street" 
                                 placeholder="Nome da rua" 
+                                value={form.street}
+                                onChange={handleChange}
                             />
                         </label>
                         <label>Número
@@ -88,6 +124,8 @@ export default function Contact() {
                             <input 
                                 name="neighborhood" 
                                 placeholder="Seu bairro" 
+                                value={form.neighborhood}
+                                onChange={handleChange}
                             />
                         </label>
                     </div>
