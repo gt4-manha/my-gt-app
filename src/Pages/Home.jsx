@@ -1,6 +1,6 @@
-import { useState } from "react";
 import Greetings from "../components/Greetings";
 import UserCard from "../components/UserCard";
+import { useState } from "react";
 
 const team = [
     {
