@@ -1,6 +1,6 @@
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 import { Header } from './components/Header';
-import Contact from './pages/Contact';
+import Contact from './Pages/Contact';
 import Home from './Pages/Home';
 import './App.css';
 
