@@ -41,7 +41,7 @@ export default function Contact() {
                 cep: cleanCep,
                 street: address.logradouro || '',
                 neighborhood: address.bairro || '',
-                state: address.uf || '',
+                state: address.estado || '',
                 city: address.localidade || ''
             }));
 
@@ -97,7 +97,14 @@ export default function Contact() {
                         <label>Estado
                             <select 
                                 name="state" 
+                                value={form.state}
+                                onChange={handleChange}
                             >
+                                <option>Selecione</option>
+                                {states.map((state) => 
+                                    <option key={state.id} value={state.nome}>
+                                        {state.nome}
+                                    </option>)}
                             </select>
                         </label>
                         <label>Cidade
